@@ -69,7 +69,7 @@ export default function MemberRegistrationForm() {
   const [loading, setLoading] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
-  const [countryCode, setCountryCode] = useState("+880");
+  const [countryCode, setCountryCode] = useState("+44");
   const [phoneNumber, setPhoneNumber] = useState("");
 
   // Find the country object for the current country code
