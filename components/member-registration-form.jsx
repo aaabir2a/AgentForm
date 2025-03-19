@@ -14,9 +14,12 @@ import {
   CircularProgress,
   Alert,
   Paper,
+  Typography,
 } from "@mui/material";
+import { API_ENDPOINTS } from "@/constants/const";
+import countryCodes from "@/constants/countryCodes";
 
-// Custom notification component that doesn't use Snackbar
+// Update the Notification component to make success messages more visible
 function Notification({ message, severity, onClose }) {
   if (!message) return null;
 
@@ -35,7 +38,16 @@ function Notification({ message, severity, onClose }) {
       <Alert
         severity={severity}
         onClose={onClose}
-        sx={{ width: "100%", boxShadow: "0 3px 10px rgba(0,0,0,0.2)" }}
+        sx={{
+          width: "100%",
+          boxShadow: "0 3px 10px rgba(0,0,0,0.2)",
+          ...(severity === "success" && {
+            backgroundColor: "#e6f7e6",
+            border: "1px solid #4caf50",
+            fontSize: "1.1rem",
+            fontWeight: "bold",
+          }),
+        }}
       >
         {message}
       </Alert>
@@ -59,6 +71,11 @@ export default function MemberRegistrationForm() {
   const [errorMessage, setErrorMessage] = useState("");
   const [countryCode, setCountryCode] = useState("+880");
   const [phoneNumber, setPhoneNumber] = useState("");
+
+  // Find the country object for the current country code
+  const selectedCountry =
+    countryCodes.find((country) => country.value === countryCode) ||
+    countryCodes.find((country) => country.code === "BD");
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -138,9 +155,7 @@ export default function MemberRegistrationForm() {
 
     // Check for existing username, email, and phone
     try {
-      const response = await fetch(
-        "http://192.168.68.129:8002/member/api/v1/member/all/"
-      );
+      const response = await fetch(API_ENDPOINTS.GET_ALL_MEMBERS);
       const data = await response.json();
 
       const members = data.members || [];
@@ -184,6 +199,7 @@ export default function MemberRegistrationForm() {
     }
   };
 
+  // Update the handleSubmit function to show API error messages
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -200,16 +216,15 @@ export default function MemberRegistrationForm() {
           password: "123456",
         };
 
-        const response = await fetch(
-          "http://192.168.68.129:8002/member/api/v1/member/create/",
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify(submitData),
-          }
-        );
+        const response = await fetch(API_ENDPOINTS.CREATE_MEMBER, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(submitData),
+        });
+
+        const responseData = await response.json();
 
         if (response.ok) {
           setSuccessMessage("Member created successfully!");
@@ -224,33 +239,49 @@ export default function MemberRegistrationForm() {
           });
           setPhoneNumber("");
 
-          // Auto-hide success message after 6 seconds
+          // Auto-hide success message after 10 seconds (increased from 6)
           setTimeout(() => {
             setSuccessMessage("");
-          }, 6000);
+          }, 10000);
         } else {
-          const errorData = await response.json();
+          // Show the specific error message from the API
           setErrorMessage(
-            errorData.message || "Failed to create member. Please try again."
+            responseData.message ||
+              responseData.error ||
+              "Failed to create member. Please try again."
           );
 
-          // Auto-hide error message after 6 seconds
+          // Auto-hide error message after 8 seconds
           setTimeout(() => {
             setErrorMessage("");
-          }, 6000);
+          }, 8000);
         }
       } catch (error) {
         console.error("Error submitting form:", error);
         setErrorMessage("An error occurred. Please try again.");
 
-        // Auto-hide error message after 6 seconds
+        // Auto-hide error message after 8 seconds
         setTimeout(() => {
           setErrorMessage("");
-        }, 6000);
+        }, 8000);
       }
     }
 
     setLoading(false);
+  };
+
+  // Add a function to reset the form
+  const resetForm = () => {
+    setFormData({
+      first_name: "",
+      username: "",
+      email: "",
+      primary_phone: "",
+      permanent_address: "",
+      is_active: false,
+    });
+    setPhoneNumber("");
+    setErrors({});
   };
 
   const handleCloseNotification = () => {
@@ -258,6 +289,8 @@ export default function MemberRegistrationForm() {
     setErrorMessage("");
   };
 
+  // Update the return statement to include the "Add Another Agent" button
+  // Replace the Button and notification section with this:
   return (
     <Paper elevation={3} sx={{ p: 4, borderRadius: 2 }}>
       <Box component="form" onSubmit={handleSubmit} noValidate>
@@ -266,7 +299,7 @@ export default function MemberRegistrationForm() {
           required
           fullWidth
           id="first_name"
-          label="Name"
+          label="First Name"
           name="first_name"
           autoComplete="name"
           value={formData.first_name}
@@ -280,7 +313,7 @@ export default function MemberRegistrationForm() {
           required
           fullWidth
           id="username"
-          label="User Name"
+          label="Last Name"
           name="username"
           autoComplete="username"
           value={formData.username}
@@ -305,7 +338,7 @@ export default function MemberRegistrationForm() {
         />
 
         <Box sx={{ display: "flex", mt: 2 }}>
-          <FormControl sx={{ width: "30%", mr: 1 }}>
+          <FormControl sx={{ width: "40%", mr: 1 }}>
             <InputLabel id="country-code-label">Country Code</InputLabel>
             <Select
               labelId="country-code-label"
@@ -313,11 +346,40 @@ export default function MemberRegistrationForm() {
               value={countryCode}
               label="Country Code"
               onChange={handleCountryCodeChange}
+              renderValue={(value) => {
+                const country = countryCodes.find(
+                  (option) => option.value === value
+                );
+                return (
+                  <Box sx={{ display: "flex", alignItems: "center" }}>
+                    <img
+                      loading="lazy"
+                      width="20"
+                      src={`https://flagcdn.com/w20/${country?.code?.toLowerCase()}.png`}
+                      srcSet={`https://flagcdn.com/w40/${country?.code?.toLowerCase()}.png 2x`}
+                      alt=""
+                    />
+                    <Typography sx={{ ml: 1 }}>{country?.value}</Typography>
+                  </Box>
+                );
+              }}
             >
-              <MenuItem value="+880">+880 (Bangladesh)</MenuItem>
-              <MenuItem value="+91">+91 (India)</MenuItem>
-              <MenuItem value="+1">+1 (USA)</MenuItem>
-              <MenuItem value="+44">+44 (UK)</MenuItem>
+              {countryCodes.map((country) => (
+                <MenuItem key={country.code} value={country.value}>
+                  <Box sx={{ display: "flex", alignItems: "center" }}>
+                    <img
+                      loading="lazy"
+                      width="20"
+                      src={`https://flagcdn.com/w20/${country.code.toLowerCase()}.png`}
+                      srcSet={`https://flagcdn.com/w40/${country.code.toLowerCase()}.png 2x`}
+                      alt=""
+                    />
+                    <Typography sx={{ ml: 1 }}>
+                      {country.label} ({country.value})
+                    </Typography>
+                  </Box>
+                </MenuItem>
+              ))}
             </Select>
           </FormControl>
 
@@ -347,29 +409,40 @@ export default function MemberRegistrationForm() {
           onChange={handleChange}
         />
 
-        <FormControlLabel
-          control={
-            <Checkbox
-              checked={formData.is_active}
-              onChange={handleCheckboxChange}
-              name="is_active"
-            />
-          }
-          label="Is active"
-          sx={{ mt: 1 }}
-        />
+        {/* Update the buttons section */}
+        <Box sx={{ mt: 3, mb: 2 }}>
+          {successMessage ? (
+            <Button
+              fullWidth
+              variant="outlined"
+              color="primary"
+              onClick={resetForm}
+              sx={{
+                mb: 2,
+                py: 1.5,
+                fontSize: "1rem",
+                backgroundColor: "#e8f5e9",
+                "&:hover": {
+                  backgroundColor: "#c8e6c9",
+                },
+              }}
+            >
+              Add Another Agent
+            </Button>
+          ) : (
+            <Button
+              type="submit"
+              fullWidth
+              variant="contained"
+              sx={{ py: 1.5 }}
+              disabled={loading}
+            >
+              {loading ? <CircularProgress size={24} /> : "Register"}
+            </Button>
+          )}
+        </Box>
 
-        <Button
-          type="submit"
-          fullWidth
-          variant="contained"
-          sx={{ mt: 3, mb: 2 }}
-          disabled={loading}
-        >
-          {loading ? <CircularProgress size={24} /> : "Register"}
-        </Button>
-
-        {/* Custom notifications instead of Snackbar */}
+        {/* Custom notifications */}
         {successMessage && (
           <Notification
             message={successMessage}
