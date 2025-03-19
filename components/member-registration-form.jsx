@@ -337,8 +337,20 @@ export default function MemberRegistrationForm() {
           helperText={errors.email}
         />
 
-        <Box sx={{ display: "flex", mt: 2 }}>
-          <FormControl sx={{ width: "40%", mr: 1 }}>
+        <Box
+          sx={{
+            display: "flex",
+            mt: 2,
+            flexDirection: { xs: "column", sm: "row" },
+          }}
+        >
+          <FormControl
+            sx={{
+              width: { xs: "100%", sm: "40%" },
+              mb: { xs: 2, sm: 0 },
+              mr: { sm: 1 },
+            }}
+          >
             <InputLabel id="country-code-label">Country Code</InputLabel>
             <Select
               labelId="country-code-label"
