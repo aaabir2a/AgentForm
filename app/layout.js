@@ -5,8 +5,8 @@ import ThemeRegistry from "@/components/ThemeRegistry";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata = {
-  title: "Member Registration",
-  description: "Register new members",
+  title: "Agent Registration",
+  description: "Register new Agent",
 };
 
 export default function RootLayout({ children }) {

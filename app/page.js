@@ -18,14 +18,14 @@ export default function Home() {
           <Image
             src="/logo.png"
             alt="Company Logo"
-            width={180}
+            width={140}
             height={140}
             priority
           />
         </Box>
 
         <Typography variant="h4" component="h1" gutterBottom sx={{ mb: 3 }}>
-          Member Registration
+          Agent Registration
         </Typography>
 
         <Box sx={{ width: "100%", maxWidth: "600px", mx: "auto" }}>
