@@ -1,6 +1,6 @@
 // API endpoints and other constants
-export const BASE_URL = "http://192.168.68.129:8002";
-// export const BASE_URL = "https://apibustours.dreamtourism.co.uk";
+// export const BASE_URL = "http://192.168.68.129:8002";
+export const BASE_URL = "https://apibustours.dreamtourism.co.uk";
 
 // API endpoints
 export const API_ENDPOINTS = {
